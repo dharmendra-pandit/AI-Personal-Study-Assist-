@@ -15,5 +15,7 @@ def run(fn, *args, **kwargs):
 def show_sources(sources: list[dict]):
     with st.expander("Sources"):
         for s in sources:
-            st.markdown(f"**{s['source']}** (page {s['page'] or '-'}, score {s['score']:.2f})")
+            # chunks sampled for overview questions carry no match score
+            score = f", match {s['score']:.2f}" if s.get("score") is not None else ""
+            st.markdown(f"**{s['source']}** (page {s['page'] or '-'}{score})")
             st.caption(s["text"])

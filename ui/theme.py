@@ -116,6 +116,17 @@ label p { font-size: 0.85rem !important; font-weight: 500; color: var(--muted); 
     padding: 1rem 1.2rem; margin-bottom: 0.8rem;
 }
 [data-testid="stForm"] { border: none; padding: 0; margin-top: 0.4rem; }
+/* user turns tinted, assistant turns white; avatars in the app's navy instead of red/orange */
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+    background: #EEF0F6; border-color: #DDE1EC;
+}
+[data-testid="stChatMessageAvatarUser"] {
+    background-color: var(--accent-soft) !important; color: var(--accent) !important;
+}
+[data-testid="stChatMessageAvatarAssistant"] {
+    background-color: var(--accent) !important; color: #fff !important;
+}
+[data-testid="stChatMessage"] [data-testid="stCaptionContainer"] { margin-top: -0.3rem; }
 
 /* alerts: quiet, left-accented */
 [data-testid="stAlert"] {

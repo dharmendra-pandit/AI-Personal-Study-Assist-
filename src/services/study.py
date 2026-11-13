@@ -2,12 +2,11 @@
 
 Every function raises StudyError with a user-readable message on failure.
 """
-from src.core.config import TOP_K
 from src.db import tracking
-from src.db.vector import library_overview, search
+from src.db.vector import library_overview, list_sources, search
 from src.services import ai
 from src.services.embedding import get_embeddings
-from src.services.retrieval import get_context
+from src.services.retrieval import ask_context, get_context, mentioned_sources
 
 
 class StudyError(Exception):
@@ -23,15 +22,20 @@ def _llm(fn, *args):
         raise StudyError(f"LLM request failed: {e}") from e
 
 
-def ask(question: str) -> dict:
-    contexts = search(get_embeddings([question])[0], TOP_K)
+def ask(question: str, source: str | None = None) -> dict:
+    """Answer from the documents named in the question, else the `source` scope, else all."""
+    library = list_sources()
+    if not library:
+        raise StudyError("No documents uploaded yet. Add a PDF or DOCX in the sidebar.")
+    docs = mentioned_sources(question, library) or ([source] if source in library else [])
+    contexts = ask_context(question, docs)
     if not contexts:
-        raise StudyError("No documents uploaded yet.")
-    answer = _llm(ai.generate_answer, question, contexts)
+        raise StudyError("No matching passages found in your documents.")
+    answer = _llm(ai.generate_answer, question, contexts, library)
     tracking.log_activity(
         "ask", question,
         {"answer": answer,
-         "sources": [{"source": c["source"], "page": c["page"], "score": c["score"],
+         "sources": [{"source": c["source"], "page": c["page"], "score": c.get("score"),
                       "text": c["text"][:400]} for c in contexts]},
         [c["source"] for c in contexts],
     )

@@ -9,9 +9,12 @@ from src.core.config import API_KEY, BASE_URL, LLM_MODEL
 client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
 
 SYSTEM_PROMPT = (
-    "You are a study assistant. Answer the question using ONLY the provided context. "
-    "If the context does not contain the answer, say you could not find it in the "
-    "uploaded documents. Be accurate and concise."
+    "You are a study assistant. Answer the question using ONLY the provided context "
+    "passages from the learner's documents. Each passage is labelled with its file name and "
+    "page. When the question names a file or refers to 'this document', answer from that "
+    "file's passages; for questions like 'what is it about' or 'in short', give a brief "
+    "summary of them. If the context does not contain the answer, say you could not find it "
+    "in the uploaded documents. Be accurate and concise, and use markdown where it helps."
 )
 
 NOTES_PROMPT = (
@@ -110,10 +113,11 @@ def _chat(system: str, user: str, temperature: float, json_mode: bool = False) -
     return response.choices[0].message.content
 
 
-def generate_answer(question: str, contexts: list[dict]) -> str:
+def generate_answer(question: str, contexts: list[dict], library: list[str] | None = None) -> str:
+    docs = f"Documents in the library: {', '.join(library)}\n\n" if library else ""
     return _chat(
         SYSTEM_PROMPT,
-        f"Context:\n{_format_context(contexts)}\n\nQuestion: {question}",
+        f"{docs}Context:\n{_format_context(contexts)}\n\nQuestion: {question}",
         temperature=0.2,
     )
 

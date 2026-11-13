@@ -28,7 +28,15 @@ def _save():
 
 
 def add_vectors(vectors: np.ndarray, chunks: list[dict]):
+    """Store chunks; any earlier copy of the same document(s) is replaced, not duplicated."""
+    global documents
     with _lock:
+        names = {c["source"] for c in chunks}
+        stale = [i for i, d in enumerate(documents) if d["source"] in names]
+        if stale:
+            # a flat index compacts on removal, keeping the remaining vectors in order
+            index.remove_ids(np.array(stale, dtype="int64"))
+            documents = [d for d in documents if d["source"] not in names]
         index.add(np.asarray(vectors, dtype="float32"))
         documents.extend(chunks)
         _save()

@@ -30,7 +30,7 @@ with st.spinner("Loading the study engine. The first start can take a minute..."
     from ui import chat, history, notes, plan, progress, quiz, sidebar, theme  # noqa: E402
 
 PAGES = {
-    "Ask": lambda source: chat.render(),
+    "Ask": chat.render,
     "Notes": notes.render,
     "Quiz": quiz.render,
     "Progress": lambda source: progress.render(),

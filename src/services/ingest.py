@@ -14,7 +14,9 @@ def read_pdf(file_bytes: bytes) -> list[tuple[int | None, str]]:
     pages = []
     with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
         for n, page in enumerate(pdf.pages, start=1):
-            pages.append((n, page.extract_text() or ""))
+            # the default gap tolerance (3) glues words together in tightly spaced PDFs
+            # ("FullStackEngineerwitha..."), which ruins search; 1.5 keeps them apart
+            pages.append((n, page.extract_text(x_tolerance=1.5) or ""))
     return pages
 
 
