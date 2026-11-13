@@ -55,12 +55,9 @@ h3 { font-size: 1.2rem !important; }
     font-family: 'Inter', sans-serif; font-size: 0.72rem !important; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
 }
-[class*="st-key-doc_"] button { justify-content: flex-start; text-align: left; }
-[class*="st-key-doc_"] button > div { width: 100%; justify-content: flex-start; }
-[class*="st-key-doc_"] button p {
-    text-align: left; width: 100%;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.88rem;
-}
+/* document picker: one checkbox per file, long names wrap instead of overflowing */
+[class*="st-key-pick_"] label p { font-size: 0.88rem; overflow-wrap: anywhere; line-height: 1.35; }
+[class*="st-key-hist_"] button { padding: 0.2rem 0.3rem; min-height: 0; color: var(--muted); }
 .doc-item {
     font-size: 0.88rem; padding: 0.45rem 0.7rem; margin-bottom: 0.35rem;
     background: var(--surface); border: 1px solid var(--line); border-radius: 8px;

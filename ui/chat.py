@@ -1,7 +1,7 @@
 import streamlit as st
 
 from src.services import study
-from ui.common import show_sources
+from ui.common import scope_note, show_sources
 
 
 def _source_line(sources: list[dict]) -> str:
@@ -30,20 +30,20 @@ def _show(message: dict):
         _body(message)
 
 
-def _reply(question: str, source: str | None) -> dict:
+def _reply(question: str, docs: list[str] | None) -> dict:
     try:
-        res = study.ask(question, source)
+        res = study.ask(question, docs)
     except study.StudyError as e:
         return {"role": "assistant", "content": str(e), "error": True}
     return {"role": "assistant", "content": res["answer"], "sources": res["sources"]}
 
 
-def render(source: str | None):
+def render(docs: list[str] | None):
     messages = st.session_state.setdefault("messages", [])
 
     info, clear = st.columns([5, 1], vertical_alignment="center")
-    info.caption(f"Searching **{source or 'all documents'}**. Name a file in your question "
-                 "to focus on it, or change the scope in the sidebar.")
+    with info:
+        scope_note(docs, "Tick documents in the sidebar, or name a file in your question.")
     if messages and clear.button("Clear chat", type="tertiary", width="stretch"):
         messages.clear()
         st.rerun()
@@ -68,7 +68,7 @@ def render(source: str | None):
             _show(user_msg)
             with st.chat_message("assistant"):
                 with st.spinner("Thinking..."):
-                    reply = _reply(question, source)
+                    reply = _reply(question, docs)
                     # Save before drawing anything: a second click or Enter while the
                     # answer is being written restarts the page, which would drop it.
                     messages.extend([user_msg, reply])

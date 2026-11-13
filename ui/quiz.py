@@ -3,7 +3,7 @@ from html import escape
 import streamlit as st
 
 from src.services import study
-from ui.common import run
+from ui.common import run, scope_note
 
 
 def _reset_answers():
@@ -11,8 +11,9 @@ def _reset_answers():
         del st.session_state[k]
 
 
-def render(source: str | None):
+def render(docs: list[str] | None):
     st.session_state.setdefault("quiz", None)
+    scope_note(docs)
     st.session_state.setdefault("quiz_result", None)
 
     c1, c2, c3 = st.columns([3, 1, 1])
@@ -22,7 +23,7 @@ def render(source: str | None):
 
     if st.button("Generate quiz", type="primary"):
         with st.spinner("Writing questions..."):
-            quiz = run(study.make_quiz, topic or None, source, int(num_q), difficulty)
+            quiz = run(study.make_quiz, topic or None, docs, int(num_q), difficulty)
         if quiz:
             _reset_answers()
             st.session_state.quiz = quiz

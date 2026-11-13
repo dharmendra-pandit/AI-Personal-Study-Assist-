@@ -199,22 +199,49 @@ def record_attempt(quiz_id: int, answers: list[int | None]) -> dict:
             "results": results}
 
 
-def get_progress(weak_threshold: float = 0.7, min_questions: int = 2) -> dict:
+def quizzes_without_sources() -> list[tuple[int, list[dict]]]:
+    """Quizzes saved before their source documents were recorded."""
+    with closing(_conn()) as conn:
+        rows = conn.execute("SELECT id, questions_json FROM quizzes "
+                            "WHERE sources_json = '[]'").fetchall()
+    return [(r["id"], json.loads(r["questions_json"])) for r in rows]
+
+
+def set_quiz_sources(quiz_id: int, sources: list[str]):
+    with closing(_conn()) as conn, conn:
+        conn.execute("UPDATE quizzes SET sources_json = ? WHERE id = ?",
+                     (json.dumps(sorted(set(sources))), quiz_id))
+
+
+def _in_scope(sources: list[str] | None) -> tuple[str, list[str]]:
+    """SQL condition on attempts `a`: the quiz drew on at least one of `sources`."""
+    if not sources:
+        return "1 = 1", []
+    marks = ", ".join("?" * len(sources))
+    return (f"a.quiz_id IN (SELECT q2.id FROM quizzes q2, json_each(q2.sources_json) j "
+            f"WHERE j.value IN ({marks}))", list(sources))
+
+
+def get_progress(weak_threshold: float = 0.7, min_questions: int = 2,
+                 sources: list[str] | None = None) -> dict:
+    """Quiz performance, limited to quizzes on `sources` when given (None = everything)."""
+    scope, params = _in_scope(sources)
     with closing(_conn()) as conn:
         overall = conn.execute(
-            "SELECT COUNT(DISTINCT attempt_id) AS attempts, COUNT(*) AS questions, "
-            "COALESCE(SUM(is_correct), 0) AS correct FROM results"
+            "SELECT COUNT(DISTINCT r.attempt_id) AS attempts, COUNT(*) AS questions, "
+            "COALESCE(SUM(r.is_correct), 0) AS correct "
+            f"FROM results r JOIN attempts a ON a.id = r.attempt_id WHERE {scope}", params
         ).fetchone()
         topic_rows = conn.execute(
             "SELECT MIN(r.topic) AS topic, COUNT(*) AS total, SUM(r.is_correct) AS correct, "
             "MAX(a.created_at) AS last_practiced "
-            "FROM results r JOIN attempts a ON a.id = r.attempt_id "
-            "GROUP BY LOWER(r.topic)"
+            f"FROM results r JOIN attempts a ON a.id = r.attempt_id WHERE {scope} "
+            "GROUP BY LOWER(r.topic)", params
         ).fetchall()
         recent = conn.execute(
-            "SELECT a.id, a.created_at, a.score, a.total, q.source, q.topic, q.difficulty "
-            "FROM attempts a JOIN quizzes q ON q.id = a.quiz_id "
-            "ORDER BY a.id DESC LIMIT 10"
+            "SELECT a.id, a.created_at, a.score, a.total, q.sources_json, q.topic, q.difficulty "
+            f"FROM attempts a JOIN quizzes q ON q.id = a.quiz_id WHERE {scope} "
+            "ORDER BY a.id DESC LIMIT 10", params
         ).fetchall()
 
     topics = sorted(
@@ -231,7 +258,12 @@ def get_progress(weak_threshold: float = 0.7, min_questions: int = 2) -> dict:
         "topics": topics,  # weakest first
         "weak_topics": [t for t in topics
                         if t["total"] >= min_questions and t["accuracy"] < weak_threshold],
-        "recent_attempts": [dict(r) for r in recent],
+        "recent_attempts": [
+            {"id": r["id"], "created_at": r["created_at"], "score": r["score"],
+             "total": r["total"], "documents": ", ".join(json.loads(r["sources_json"])),
+             "topic": r["topic"], "difficulty": r["difficulty"]}
+            for r in recent
+        ],
     }
 
 

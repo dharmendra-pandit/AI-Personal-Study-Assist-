@@ -20,16 +20,19 @@ SYSTEM_PROMPT = (
 NOTES_PROMPT = (
     "You are a study assistant. Write well-structured study notes using ONLY the provided "
     "context. Use markdown: a title, headings per topic, bullet points, **bold** key terms, "
-    "and a short 'Key takeaways' section at the end. Do not add facts that are not in the context."
+    "and a short 'Key takeaways' section at the end. Do not add facts that are not in the context. "
+    "When the context comes from several files, cover each of them."
 )
 
 QUIZ_PROMPT = (
     "You are a quiz writer. Using ONLY the provided context, write multiple-choice questions. "
     "Respond with a JSON object of the form: "
     '{"questions": [{"question": str, "options": [4 strings], "answer_index": 0-3, '
-    '"explanation": str, "topic": str (2-4 word topic label)}]}. '
+    '"explanation": str, "topic": str (2-4 word topic label), '
+    '"source": str (file name of the passage the question is based on)}]}. '
     "Exactly one option must be correct, distractors must be plausible, and every question "
-    "must be answerable from the context."
+    "must be answerable from the context. When the context comes from several files, spread "
+    "the questions across them as evenly as the content allows."
 )
 
 
@@ -39,6 +42,7 @@ class QuizQuestion(BaseModel):
     answer_index: int = Field(ge=0, le=3)
     explanation: str = ""
     topic: str = "General"
+    source: str = ""
 
 
 class Quiz(BaseModel):

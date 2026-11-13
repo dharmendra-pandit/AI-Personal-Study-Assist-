@@ -29,13 +29,14 @@ if missing:
 with st.spinner("Loading the study engine. The first start can take a minute..."):
     from ui import chat, history, notes, plan, progress, quiz, sidebar, theme  # noqa: E402
 
+# every page except History works on the documents ticked in the sidebar (None = all)
 PAGES = {
     "Ask": chat.render,
     "Notes": notes.render,
     "Quiz": quiz.render,
-    "Progress": lambda source: progress.render(),
-    "Plan": lambda source: plan.render(),
-    "History": lambda source: history.render(),
+    "Progress": progress.render,
+    "Plan": plan.render,
+    "History": lambda docs: history.render(),
 }
 
 # Widgets on pages that are not shown lose their state; re-assigning keeps it alive
@@ -51,10 +52,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-source = sidebar.render()
+docs = sidebar.render()
 
 st.session_state.setdefault("page", "Ask")
 st.segmented_control("Navigate", list(PAGES), key="page", label_visibility="collapsed")
 st.divider()
 
-PAGES[st.session_state.get("page") or "Ask"](source)
+PAGES[st.session_state.get("page") or "Ask"](docs)

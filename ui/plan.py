@@ -6,7 +6,7 @@ import streamlit as st
 from src.db import tracking
 from src.services import study
 from ui import theme
-from ui.common import run
+from ui.common import run, scope_note
 
 START_LABEL = {"notes": "Open notes", "quiz": "Start quiz", "ask": "Ask now"}
 
@@ -36,14 +36,15 @@ def _start_date(plan: dict):
         return None
 
 
-def render():
+def render(docs: list[str] | None):
+    scope_note(docs, "The plan is built from your quizzes on these documents.")
     c1, c2 = st.columns(2)
     days = c1.number_input("Days", 1, 30, 7)
     minutes = c2.number_input("Minutes per day", 10, 480, 45, step=5)
 
     if st.button("Generate plan from my progress", type="primary"):
         with st.spinner("Building your plan from your results and documents..."):
-            plan = run(study.make_plan, int(days), int(minutes))
+            plan = run(study.make_plan, int(days), int(minutes), docs)
         if plan:
             st.session_state.plan = plan
 
@@ -57,6 +58,11 @@ def render():
     total_tasks = sum(len(d["tasks"]) for d in plan["days"])
     total_min = sum(t["minutes"] for d in plan["days"] for t in d["tasks"])
 
+    built_for = plan.get("sources") or []  # [] or missing = whole library
+    st.caption("This plan covers " + (", ".join(built_for) or "all documents") + ".")
+    if sorted(built_for) != sorted(docs or []):
+        st.info("This plan was built for a different document selection. Generate a new one "
+                "to match the documents ticked in the sidebar.")
     st.markdown(plan["summary"])
     if plan.get("weak_topics"):
         st.caption("Focus areas: " + ", ".join(plan["weak_topics"]))

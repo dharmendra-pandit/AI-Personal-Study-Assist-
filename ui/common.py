@@ -12,6 +12,12 @@ def run(fn, *args, **kwargs):
         return None
 
 
+def scope_note(docs: list[str] | None, extra: str = ""):
+    """One line saying which documents the page works on."""
+    using = ", ".join(f"**{d}**" for d in docs) if docs else "**all documents**"
+    st.caption(f"Using {using}. {extra}".strip())
+
+
 def show_sources(sources: list[dict]):
     with st.expander("Sources"):
         for s in sources:
