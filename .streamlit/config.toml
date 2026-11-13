@@ -1,0 +1,17 @@
+[theme]
+base = "light"
+primaryColor = "#2B3A67"
+backgroundColor = "#FAF9F6"
+secondaryBackgroundColor = "#F2F0EA"
+textColor = "#1F2430"
+
+[server]
+# The watcher walks every lazily-imported transformers submodule, which is slow and floods
+# the log with import errors. Restart the app after editing code.
+fileWatcherType = "none"
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
