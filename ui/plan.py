@@ -96,7 +96,7 @@ def render():
                 )
                 if t["type"] in START_LABEL:
                     action.button(START_LABEL[t["type"]], key=f"go_{plan_id}_{d['day']}_{j}",
-                                  on_click=_start, args=(t,), use_container_width=True)
+                                  on_click=_start, args=(t,), width="stretch")
 
     st.caption("Tick tasks as you finish them. After a new quiz, generate a fresh plan "
                "so it reflects your latest results.")

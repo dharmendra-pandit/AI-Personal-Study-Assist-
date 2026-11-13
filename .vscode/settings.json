@@ -1,3 +1,5 @@
 {
-  "cSpell.words": ["deepseek", "dotenv", "faiss"]
+  "cSpell.words": ["deepseek", "dotenv", "faiss"],
+  "python.defaultInterpreterPath": "${workspaceFolder}\\myenv\\Scripts\\python.exe",
+  "python.terminal.activateEnvironment": true
 }

@@ -25,7 +25,7 @@ def render():
         question = c1.text_input("Question", key="ask_question",
                                  placeholder="Ask about your documents...",
                                  label_visibility="collapsed")
-        sent = c2.form_submit_button("Send", type="primary", use_container_width=True)
+        sent = c2.form_submit_button("Send", type="primary", width="stretch")
 
     if sent and question.strip():
         user_msg = {"role": "user", "content": question.strip()}

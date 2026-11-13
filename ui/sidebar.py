@@ -16,7 +16,7 @@ def render() -> str | None:
         files = st.file_uploader("Add PDF or DOCX files", type=["pdf", "docx"],
                                  accept_multiple_files=True)
         if st.button("Process files", type="primary", disabled=not files,
-                     use_container_width=True):
+                     width="stretch"):
             for f in files:
                 with st.spinner(f"Processing {f.name}..."):
                     try:
@@ -33,7 +33,7 @@ def render() -> str | None:
             for i, s in enumerate(sources):
                 st.button(s, key=f"doc_{i}", help=f"{s}: view its history",
                           type="primary" if s == viewing else "secondary",
-                          on_click=_open_history, args=(s,), use_container_width=True)
+                          on_click=_open_history, args=(s,), width="stretch")
             st.caption(f"{len(sources)} document(s), {vector.count()} chunks indexed. "
                        "Click a document to see its questions, notes and quizzes.")
         else:
@@ -43,7 +43,7 @@ def render() -> str | None:
         scope = st.selectbox("Notes and quiz use", ["All documents"] + sources,
                              label_visibility="collapsed")
 
-        if sources and st.button("Clear library", use_container_width=True):
+        if sources and st.button("Clear library", width="stretch"):
             vector.reset()
             st.session_state.update(messages=[], notes=None, quiz=None, quiz_result=None)
             st.rerun()
